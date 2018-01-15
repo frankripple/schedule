@@ -3,7 +3,7 @@ import datetime
 import functools
 import mock
 import unittest
-
+import time
 # Silence "missing docstring", "method could be a function",
 # "class already defined", and "too many public methods" messages:
 # pylint: disable-msg=R0201,C0111,E0102,R0904,R0901
@@ -248,6 +248,38 @@ class SchedulerTests(unittest.TestCase):
         with mock_datetime(2010, 1, 10, 11, 31):
             schedule.run_pending()
             assert mock_job.call_count == 2
+            
+    def test_run_every_working_days_at_specific_time(self):
+        mock_job = make_mock_job()
+        with mock_datetime(2018, 1, 16, 11, 29):
+            every().working_days.at('11:30').do(mock_job)
+            schedule.run_pending()
+            assert mock_job.call_count == 0
+
+        with mock_datetime(2018, 1, 16, 11, 31):
+            schedule.run_pending()
+            assert mock_job.call_count == 1
+
+        with mock_datetime(2018, 1, 18, 11, 31):
+            schedule.run_pending()
+            assert mock_job.call_count == 2
+
+        with mock_datetime(2018, 1, 19, 11, 31):
+            schedule.run_pending()
+            assert mock_job.call_count == 3
+
+        with mock_datetime(2018, 1, 20, 11, 31):
+            schedule.run_pending()
+            assert mock_job.call_count == 3
+
+        with mock_datetime(2018, 1, 21, 11, 31):
+            schedule.run_pending()
+            assert mock_job.call_count == 3
+
+        with mock_datetime(2018, 1, 22, 11, 31):
+            schedule.run_pending()
+            assert mock_job.call_count == 4
+        
 
     def test_next_run_property(self):
         original_datetime = datetime.datetime
@@ -328,3 +360,21 @@ class SchedulerTests(unittest.TestCase):
         scheduler.every()
         scheduler.every(10).seconds
         scheduler.run_pending()
+
+
+
+##hahaha
+def job(message='stuff'):
+    print("I'm working on:", message)
+    
+if __name__ == '__main__':
+    unittest.main(verbosity = 2)
+##    scheduler = schedule.Scheduler()
+##    scheduler.clear()
+##    print scheduler.every().monday.do(job)
+##
+##    while True:
+##        scheduler.run_pending()
+##        #print datetime.datetime.now()
+##        time.sleep(1)
+
