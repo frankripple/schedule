@@ -263,8 +263,15 @@ class Job(object):
     @property
     def days(self):
         self.unit = 'days'
+        
         return self
 
+    @property  #going to do :D
+    def working_days(self):
+        self.unit = 'days'
+        self.start_day = 'monday'
+        return self
+    
     @property
     def week(self):
         assert self.interval == 1, 'Use weeks instead of week'
@@ -425,22 +432,25 @@ class Job(object):
         self.period = datetime.timedelta(**{self.unit: interval})
         self.next_run = datetime.datetime.now() + self.period
         if self.start_day is not None:
-            assert self.unit == 'weeks'
-            weekdays = (
-                'monday',
-                'tuesday',
-                'wednesday',
-                'thursday',
-                'friday',
-                'saturday',
-                'sunday'
-            )
-            assert self.start_day in weekdays
-            weekday = weekdays.index(self.start_day)
-            days_ahead = weekday - self.next_run.weekday()
-            if days_ahead <= 0:  # Target day already happened this week
-                days_ahead += 7
-            self.next_run += datetime.timedelta(days_ahead) - self.period
+            if self.unit == 'weeks':
+                weekdays = (
+                    'monday',
+                    'tuesday',
+                    'wednesday',
+                    'thursday',
+                    'friday',
+                    'saturday',
+                    'sunday'
+                )
+                assert self.start_day in weekdays
+                weekday = weekdays.index(self.start_day)
+                days_ahead = weekday - self.next_run.weekday()
+                if days_ahead <= 0:  # Target day already happened this week
+                    days_ahead += 7
+                self.next_run += datetime.timedelta(days_ahead) - self.period
+            elif self.unit == 'days':
+                if self.next_run.weekday() == 5:
+                    self.next_run += datetime.timedelta(2)
         if self.at_time is not None:
             assert self.unit in ('days', 'hours') or self.start_day is not None
             kwargs = {
